@@ -1,0 +1,73 @@
+---
+title: "Interactive Graph PS08"
+author: "Brendan Seto"
+date: ""
+output: 
+  html_document:
+    code_fold: hide
+---
+
+```{r, setup, include=FALSE}
+require(mosaic)   # Load additional packages here 
+library(tidyverse)
+library(caret)
+library(tictoc)
+
+# Some customization.  You can alter or delete as desired (if you know what you are doing).
+trellis.par.set(theme=theme.mosaic()) # change default color scheme for lattice
+knitr::opts_chunk$set(
+  tidy=FALSE,     # display code as typed
+  size="small",
+  warning = FALSE,
+  message = FALSE)   # slightly smaller font for code
+```
+
+
+```{r, read in data}
+train <- read_csv("~/Downloads/train.csv")
+```
+
+```{r, create function}
+# Time knn here -----------------------------------------------------------
+# We want to see how time varies with k,n,p (p=number of predictor variables)
+# But going to hold p constant at 3
+
+knnTimer <- function(k,n){
+  data <- sample_n(train, n)
+  tic()
+  model_knn <- caret::knn3(model_formula, data=data, k = k)
+  timer_info <- toc()
+  runtime <- timer_info$toc - timer_info$tic
+  return(runtime)
+}
+
+# Create a data frame of k and ns
+kns <- data_frame()
+ks <- c(2,3,4, 10, 20,30,40,50,60,100)
+ns <- c(10, 100,1000,10000, 100000, 1000000,2000000,3000000,4000000,5000000,6000000, 10000000)
+
+for(i in ks){
+  n <- data_frame(n=ns) %>% mutate(k = i)
+  kns <- rbind(kns,n)
+}
+```
+
+```{r, create dataset, include=FALSE}
+model_formula <- as.formula(Device ~ X + Y + Z)
+runtimes_mapply <- mapply(knnTimer, k = kns$k, n = kns$n)
+runtimes_dataframe <- cbind(kns, runtimes_mapply)
+```
+
+```{r plot}
+library(plotly)
+runtime_plot <- plot_ly(runtimes_dataframe, x = ~n, y = ~k, z = ~runtimes_mapply,
+             marker = list(color = ~runtimes_mapply, colorscale = c('#FFE1A1', '#683531'))) %>%
+  add_markers() %>%
+  layout(title = 'K-Nearest Neighbor Runtime Based on Sample Size and K',
+         scene = list(xaxis = list(title = 'Sample Size'),
+                      yaxis = list(title = 'K'),
+                      zaxis = list(title = 'runtime'),
+                      title = list(title = "K-Nearest Neighbor Runtime")))
+runtime_plot
+```
+
