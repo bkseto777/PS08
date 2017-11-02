@@ -95,10 +95,9 @@ runtime_plot
 
 
 
-ggsave(filename="firstname_lastname.png", width=16, height = 9)
 
-
-
+chart_link = api_create(runtime_plot, filename="Plot STAT495: PS08")
+chart_link
 
 # Runtime complexity ------------------------------------------------------
 # Can you write out the rough Big-O runtime algorithmic complexity as a function
@@ -107,4 +106,11 @@ ggsave(filename="firstname_lastname.png", width=16, height = 9)
 # -k: number of neighbors to consider
 # -d: number of predictors used? In this case d is fixed at 3
 
+# runtime(k) => max at k == 2, decreases linearly as k increases
+# runtime(n) => starting at trivial speeds, increases linearly with sample size
+# runtime(d) => unknown, did not measure
+
+BigO_runtime <- function(n,k,d){
+  runtime = n_constant*n    *    k_max*(sample_size-k+2)    *     something(d)
+}
 
